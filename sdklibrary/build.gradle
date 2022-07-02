@@ -1,7 +1,13 @@
+
+
 plugins {
     id 'com.android.library'
     id 'maven-publish'
+    id 'org.greenrobot.greendao'
+    id 'com.alibaba.arouter'
 }
+
+
 
 task generateSourcesJar(type: Jar){
     from android.sourceSets.main.java.srcDirs
@@ -9,25 +15,33 @@ task generateSourcesJar(type: Jar){
 }
 
 android {
-    compileSdkVersion 30
-    buildToolsVersion "30.0.1"
+    compileSdkVersion rootProject.android.compileSdkVersion
+    buildToolsVersion rootProject.android.buildToolsVersion
+
 
 
 
     defaultConfig {
-        minSdkVersion 23
-        targetSdkVersion 30
-        versionCode 1
-        versionName "1.0"
+        minSdkVersion rootProject.android.minSdkVersion
+        targetSdkVersion rootProject.android.targetSdkVersion
+        versionCode rootProject.android.versionCode
+        versionName rootProject.android.versionName
 
-        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
-        consumerProguardFiles "consumer-rules.pro"
+
+        buildConfigField("String", "baseUrl", rootProject.ext.BASE_URL)
+        //ARouter配置
+        javaCompileOptions {
+            annotationProcessorOptions {
+                arguments = [AROUTER_MODULE_NAME: project.getName(), AROUTER_GENERATE_DOC: "enable"]
+            }
+        }
+
     }
 
     buildTypes {
         release {
             minifyEnabled false
-            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
     compileOptions {
@@ -35,7 +49,18 @@ android {
         targetCompatibility JavaVersion.VERSION_1_8
     }
 
+}
+repositories {
+    flatDir {
+        dirs 'libs'
+    }
+}
 
+greendao {
+    //其它配置保持默认,有需要再研究
+    schemaVersion 1 //数据库版本号
+    targetGenDir 'src/main/java'
+    daoPackage 'com.illcc.libbase' //dao,master类所在包
 }
 
 afterEvaluate {
@@ -53,11 +78,34 @@ afterEvaluate {
 
 dependencies {
 
-    implementation 'androidx.appcompat:appcompat:1.1.0'
-    implementation 'com.google.android.material:material:1.1.0'
-    testImplementation 'junit:junit:4.+'
-    androidTestImplementation 'androidx.test.ext:junit:1.1.1'
-    androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'
+    implementation fileTree(dir: 'libs', include: ['*.jar','*.aar'])
+
+   // implementation fileTree(dir: '../app/libs', include: ['uniapp-v8-release.aar'])
+
+
+    compileOnly rootProject.depsLibs.legacy
+    compileOnly rootProject.depsLibs.appcompact
+    compileOnly rootProject.depsLibs.recyclerview
+
+
+    implementation rootProject.depsLibs.fastjson
+    implementation rootProject.depsLibs.fresco
+
+
+    implementation rootProject.depsLibs.greendao
+    implementation rootProject.depsLibs.generator
+
+
+    implementation rootProject.depsLibs.okhttp //okttp依赖
+    implementation rootProject.depsLibs.gson
+
+    //arouter库
+    implementation(rootProject.depsLibs.arouterapi) {
+        exclude group: 'com.android.support'
+    }
+    annotationProcessor rootProject.depsLibs.aroutercompiler
+
+
 }
 
 
