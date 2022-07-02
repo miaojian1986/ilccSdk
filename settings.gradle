@@ -1,2 +1,3 @@
+include ':sdklibrary'
 include ':app'
 rootProject.name = "ilccSdk"
