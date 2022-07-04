@@ -2,9 +2,11 @@ package com.illcc.libbase;
 
 import android.content.Context;
 
+import com.illcc.sdklibrary.BuildConfig;
+
 import org.greenrobot.greendao.query.QueryBuilder;
 
-import uni.dcloud.io.uniplugin_module.BuildConfig;
+
 
 /**
  * 创建数据库、创建数据库表、包含增删改查的操作 
