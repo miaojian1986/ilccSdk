@@ -3,6 +3,7 @@ package com.illcc.libbase.util;
 
 import android.Manifest;
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.provider.Settings;
@@ -16,6 +17,15 @@ import java.util.Map;
 
 
 public class DataUtil {
+
+
+
+    public static void restartApp(Context context,String packname) {
+        final Intent intent = context.getPackageManager().getLaunchIntentForPackage((packname));
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        context.startActivity(intent);
+
+    }
     public static boolean checkPermission1(Context context, String[] permissions) {
         PackageManager packageManager = context.getPackageManager();
         String packageName = context.getPackageName();
