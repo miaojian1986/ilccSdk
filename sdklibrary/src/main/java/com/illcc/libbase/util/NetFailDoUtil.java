@@ -69,7 +69,7 @@ public class NetFailDoUtil {
         switch (code) {
             case -100:
             case -200:
-                caseoutlogin();
+                caseoutlogin(context);
                 break;
             default:
         }
