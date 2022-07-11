@@ -12,6 +12,27 @@ public class CallNoteNew implements Serializable {
     private String callee_address;
     private String ai_number_id;
     private String recordpath;
+    private String endtime;
+    private String calltime;
+    private String call_type_id;
+
+    public String getCall_type_id() {
+        return call_type_id;
+    }
+
+    public CallNoteNew setCall_type_id(String call_type_id) {
+        this.call_type_id = call_type_id;
+        return this;
+    }
+
+    public String getCalltime() {
+        return calltime;
+    }
+
+    public CallNoteNew setCalltime(String calltime) {
+        this.calltime = calltime;
+        return this;
+    }
 
     //是否挂机
     private int isuplog;
@@ -20,11 +41,37 @@ public class CallNoteNew implements Serializable {
 
     private String callid;
 
+    public int getUser_id() {
+        return user_id;
+    }
 
+    public CallNoteNew setUser_id(int user_id) {
+        this.user_id = user_id;
+        return this;
+    }
 
+    public String getCaller() {
+        return caller;
+    }
 
+    public String getEndtime() {
+        return endtime;
+    }
 
+    public CallNoteNew setEndtime(String endtime) {
+        this.endtime = endtime;
+        return this;
+    }
 
+    public CallNoteNew setCreated_at(String created_at) {
+        this.created_at = created_at;
+        return this;
+    }
+
+    public CallNoteNew setCallee_address(String callee_address) {
+        this.callee_address = callee_address;
+        return this;
+    }
 
     public String getCallid() {
         return callid;

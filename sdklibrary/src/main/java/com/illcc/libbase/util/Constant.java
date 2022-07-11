@@ -4,6 +4,7 @@ package com.illcc.libbase.util;
 import android.app.ActivityManager;
 import android.content.Context;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class Constant {
@@ -19,6 +20,7 @@ public class Constant {
     public static final String KEY_ACTIVITY = "keyacitive";
 
     public static final String KEY_A_POSITON = "aposition";
+    public static final String KEY_CALL_EDNTIME_STR = "callendtimestr";
 
     public static final String KEY_AUTO_LOGINICCID = "autologiniccid";
 
@@ -32,6 +34,8 @@ public class Constant {
 
     //本机校验
     public static final String SELFJIAOYAN_BUSSI = "f8eee44ded7c4948b4b6a15e9ed52263";
+
+    public static  List<String> saveRecord = new ArrayList<>();
 
     public static final String CALL_CENTEREFRESH = "callcentralrefresh";
 

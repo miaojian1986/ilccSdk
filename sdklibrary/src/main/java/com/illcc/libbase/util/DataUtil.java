@@ -10,6 +10,7 @@ import android.provider.Settings;
 
 import androidx.core.content.ContextCompat;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -17,6 +18,50 @@ import java.util.Map;
 
 
 public class DataUtil {
+
+    public static String getNewGenerRecord(Context context) {
+        File file = new File(DataUtil.getRecordPath(context));
+        if (file != null && file.exists() && file.isDirectory()) {
+            String[] d = file.list();
+            if (d != null && d.length > 0) {
+                for (int i = 0; i < d.length; i++) {
+                    if (!Constant.saveRecord.contains(d[i])) {
+                        return file.getAbsolutePath() + "/" + d[i];
+                    }
+                }
+                return null;
+            } else {
+                return null;
+            }
+        }
+        return null;
+    }
+
+    public static String getWaitTime(Context context) {
+        String s = NewSharePUtil.getValueWithContext(context,Constant.KEY_CUSTOM_TIME);
+        if (s.equals("")) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                return "6";
+            } else {
+                return "8";
+            }
+        } else {
+            return s;
+        }
+    }
+
+    public static void getAllRecordsList(Context context) {
+        File file = new File(DataUtil.getRecordPath(context));
+        Constant.saveRecord.clear();
+        if (file != null && file.exists() && file.isDirectory()) {
+            String[] d = file.list();
+            if (d != null && d.length > 0) {
+                for (int i = 0; i < d.length; i++) {
+                    Constant.saveRecord.add(d[i]);
+                }
+            }
+        }
+    }
 
 
 
@@ -98,14 +143,9 @@ public class DataUtil {
     }
 
 
-    public static void saveCallStatus(Context context, String callid,
-                                      String taskid, String callee,
-                                      String call_type_id, int a_postion, int x_position) {
-
-        Map<String, String> map = new HashMap<>();
-        map.put("callstatus", callid + "-" + taskid + "-"
+    public static void saveCallStatus(Context context,String callid, String taskid, String callee, String call_type_id, int a_postion, int x_position) {
+        SaveDataUtil.getInstance(context).saveToShare(context,"callstatus", callid + "-" + taskid + "-"
                 + callee + "-" + call_type_id + "-" + a_postion + "-" + x_position);
-        NewSharePUtil.saveWithContext(context, map);
 
     }
 

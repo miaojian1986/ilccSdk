@@ -25,11 +25,17 @@ public class Tools {
 
 
     //自动登录
-    public static native void autologin(Context context, String savediccid, DisposeDataListener listener);
-
+    public static native void autologin(Context context, String savediccid,
+                                        String mobile_brand,
+                                        String mobile_model,
+                                        String mobile_system,
+                                        String apppackname,
+                                        DisposeDataListener listener);
 
     //检查版本
-    public static native void checkUpdate(Context context, DisposeDataListener listener);
+    public static native void checkUpdate(Context context,
+                                          String apptype,
+                                          DisposeDataListener listener);
 
 
     //电话详情
@@ -42,11 +48,14 @@ public class Tools {
     public static native void uprecord(Context context, String call_id, String record_path, DisposeDataListener listener);
 
     //挂机
-    public static native void hangup(Context context, String id, String ai_numberid, String use_time, String wait_time,
-                                     DisposeDataListener listener);
+    public static native void hangup(Context context, String id, String ai_numberid, String use_time, String wait_time,String etime, DisposeDataListener listener);
 
     //发起呼叫
-    public static native void callbefore(Context context, String callee, String ai_number_id, String is_open_recording, DisposeDataListener listener);
+    public static native void callbefore(Context context,
+                                         String callee,
+                                         String ai_number_id,
+                                         String is_open_recording,
+                                         DisposeDataListener listener);
 
     //电话历史记录
     public static native void getphonelist(Context context, String page, String pagesize, DisposeDataListener listener);

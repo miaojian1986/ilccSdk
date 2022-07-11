@@ -20,34 +20,37 @@ import androidx.lifecycle.Lifecycle;
 import androidx.lifecycle.LifecycleOwner;
 import androidx.lifecycle.LifecycleRegistry;
 
+
 import com.illcc.libbase.listener.MyPhoneStateListener;
 import com.illcc.libbase.model.BaseModel;
 import com.illcc.libbase.model.CallNoteNew;
 import com.illcc.libbase.model.SmallCallBean;
+
 import com.illcc.libbase.util.Constant;
 import com.illcc.libbase.util.DataUtil;
+import com.illcc.libbase.util.DateUtil;
 import com.illcc.libbase.util.JsonUtil;
 import com.illcc.libbase.util.NetFailDoUtil;
 import com.illcc.libbase.util.NewSharePUtil;
 import com.illcc.libbase.util.SaveDataUtil;
 import com.illcc.libbase.util.SimCardUtils;
+import com.illcc.libbase.util.ToastUtil;
 import com.illcc.libnet.okhttp.listener.DisposeDataListener;
 import com.illcc.ndk2.Tools;
-
 import java.util.HashMap;
 import java.util.Map;
 
 
 public class XLManagerService extends Service implements LifecycleOwner {
 
-    private LifecycleRegistry mLifecycleRegistry =
-            new LifecycleRegistry(this);
+    private LifecycleRegistry mLifecycleRegistry = new LifecycleRegistry(this);
 
     TelephonyManager telM;
     MyPhoneStateListener myPhoneStateListener_0;
     MyPhoneStateListener myPhoneStateListener_1;
     TelephonyManager telephonyManager0;
     TelephonyManager telephonyManager1;
+
     boolean isCanUseLinCall1;
     boolean isCanUseLinCall2;
 
@@ -55,15 +58,15 @@ public class XLManagerService extends Service implements LifecycleOwner {
     boolean isDestory = false;
     String current_xNumber;
 
+
     private Object[] getCallForwordStatus(int id, int weizhi) {
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
             Object[] result = new Object[2];
-            TelephonyManager telephonyManager = ((TelephonyManager)
-                    getSystemService(Context.TELEPHONY_SERVICE))
+            TelephonyManager telephonyManager = ((TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE))
                     .createForSubscriptionId(id);
-            MyPhoneStateListener myPhoneStateListener =
-                    new MyPhoneStateListener(this, weizhi,
-                            getClass().getName());
+            MyPhoneStateListener myPhoneStateListener = new MyPhoneStateListener(this, weizhi,
+                    getClass().getName());
             telephonyManager.listen(myPhoneStateListener,
                     PhoneStateListener.LISTEN_CALL_FORWARDING_INDICATOR);
             result[0] = myPhoneStateListener;
@@ -73,26 +76,32 @@ public class XLManagerService extends Service implements LifecycleOwner {
         return null;
     }
 
+
     public void getForwardListner() {
-
-        int siId = SimCardUtils.getSubcriptionId(this, 0);
-
-        if (siId != -1) {
-            Object[] objects1 = getCallForwordStatus(siId, 0);
-            if (objects1 != null) {
-                myPhoneStateListener_0 = (MyPhoneStateListener) objects1[0];
-                telephonyManager0 = (TelephonyManager) objects1[1];
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                int siId = SimCardUtils.getSubcriptionId(this, 0);
+                if (siId != -1) {
+                    Object[] objects1 = getCallForwordStatus(siId, 0);
+                    if (objects1 != null) {
+                        myPhoneStateListener_0 = (MyPhoneStateListener) objects1[0];
+                        telephonyManager0 = (TelephonyManager) objects1[1];
+                    }
+                }
+                int siId2 = SimCardUtils.getSubcriptionId(this, 1);
+                if (siId2 != -1) {
+                    Object[] objects2 = getCallForwordStatus(siId2, 1);
+                    if (objects2 != null) {
+                        myPhoneStateListener_1 = (MyPhoneStateListener) objects2[0];
+                        telephonyManager1 = (TelephonyManager) objects2[1];
+                    }
+                }
             }
-        }
-        int siId2 = SimCardUtils.getSubcriptionId(this, 1);
-        if (siId2 != -1) {
-            Object[] objects2 = getCallForwordStatus(siId2, 1);
-            if (objects2 != null) {
-                myPhoneStateListener_1 = (MyPhoneStateListener) objects2[0];
-                telephonyManager1 = (TelephonyManager) objects2[1];
-            }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
+
 
     void unregisetlistenphonestat(TelephonyManager telephonyManager, PhoneStateListener myPhoneStateListener) {
         if (telephonyManager != null && myPhoneStateListener != null) {
@@ -154,16 +163,15 @@ public class XLManagerService extends Service implements LifecycleOwner {
                         getForwardListner();
                     } else if (option.equals(Constant.FORWARD_SELECT_VALUE)) {
                         callMainDismissalert();
-                        if (NewSharePUtil.getValueWithContext(context,
-                                Constant.KEY_WAIT_TIME).equals("6")
-                                &&
-                                Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                        if (TextUtils.isEmpty(NewSharePUtil.getValueWithContext(XLManagerService.this,
+                                Constant.KEY_WAIT_CALL_FORWARD_TYPE))
+                                || NewSharePUtil.getValueWithContext(XLManagerService.this,
+                                Constant.KEY_WAIT_CALL_FORWARD_TYPE).equals("0")
+                                && Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
                             boolean forstatus = intent.getBooleanExtra("forstatus", false);
                             if (current_xNumber != null && forstatus) {//表示正在打呼转电话
-                                int simpistion =
-                                        intent.getIntExtra("simpistion", -1);
-                                if (simpistion != -1
-                                        && simpistion == waitcancleid) {
+                                int simpistion = intent.getIntExtra("simpistion", -1);
+                                if (simpistion != -1 && simpistion == waitcancleid) {
                                     if (forstatus) {//呼叫转移成功
                                         SimCardUtils.call(context, callslotid, "tel:" + current_xNumber);
                                         current_xNumber = null;
@@ -177,18 +185,14 @@ public class XLManagerService extends Service implements LifecycleOwner {
         }
     }
 
-
-
-
     private void callWithCallTypeid(String callee, SmallCallBean smallCallBean) {
         int sw = smallCallBean.getCall_type_id();
-        NetFailDoUtil.doWithCode(XLManagerService.this, 202,
-                "当前打电话模式是:" + sw, actiontag);
         switch (sw) {
             case 1:
                 aZhihu(callee,
                         smallCallBean.getA_position());
                 break;
+            case 8:
             case 2:
                 xZhihu(callee,
                         smallCallBean.getX_position());
@@ -200,34 +204,31 @@ public class XLManagerService extends Service implements LifecycleOwner {
                         smallCallBean.getA_number());
                 break;
             case 4:
-                callForwardingAX(
-                        callee,
+                callForwardingAX(callee,
                         smallCallBean.getA_position(),
                         smallCallBean.getX_position(),
-                        smallCallBean.getX_number()
-                );
+                        smallCallBean.getX_number());
                 break;
             case 6:
             case 7:
                 xiaohao(smallCallBean.getA_position(), smallCallBean.getX_number());
                 break;
             default:
-//                ToastUtil.showMsg(XLManagerService.this,
-//                        "未知拨打方式");
+                ToastUtil.showMsg(XLManagerService.this,
+                        "未知拨打方式");
                 break;
 
         }
     }
 
-    public void xiaohao(int a_position, String x_number) {
-
-        int id = a_position - 1;
-        SimCardUtils.callAXB(this, id,
-                "tel:" + x_number);
-    }
-
 
     SmallCallBean smallCallBean;
+    public String[] uplogBean;
+    String myCallPhoneNum;
+
+    public void setUplogBean(String[] mylogbean) {
+        uplogBean = mylogbean;
+    }
 
 
     void callMainDismissalert() {
@@ -248,20 +249,25 @@ public class XLManagerService extends Service implements LifecycleOwner {
 
     public void callAccrossServer(String callee, String task_id, String ai_number_id) {
         Tools.callbefore(XLManagerService.this, callee, ai_number_id,
-                DataUtil.checkIsOpenAudioRecord(XLManagerService.this) ? "1" : "0", new DisposeDataListener() {
+                DataUtil.getRecordStatus(this) + "",
+                new DisposeDataListener() {
                     @Override
                     public void onSuccess(Object responseObj) {
-
+                        callMainDismissalert();
                         if (responseObj != null) {
-
                             BaseModel baseModel = (BaseModel) responseObj;
                             if (baseModel.getCode() == Constant.NET_OK) {
-                                callMainDismissalert();
-                                smallCallBean = JsonUtil.convertObject(baseModel,
-                                        SmallCallBean.class);
-                                if (smallCallBean != null) {
+                                smallCallBean = JsonUtil
+                                        .convertObject(baseModel,
+                                                SmallCallBean.class);
+
+                                if (smallCallBean != null && smallCallBean.getCall_id() != null) {
+                                    if (!TextUtils.isEmpty(smallCallBean.getCall_type_id_jump_word())) {
+                                        ToastUtil.showMsg(XLManagerService.this, smallCallBean.getCall_type_id_jump_word());
+                                    }
                                     //保存到数据库
-                                    saveCallNoteToDb(XLManagerService.this, smallCallBean.getCall_id() + "",
+                                    saveCallNoteToDb(
+                                            smallCallBean.getCall_id() + "",
                                             callee, smallCallBean.getCall_type_id() + "", ai_number_id);
 
                                     DataUtil.saveCallStatus(XLManagerService.this, smallCallBean.getCall_id() + "",
@@ -274,21 +280,19 @@ public class XLManagerService extends Service implements LifecycleOwner {
                                     bundle2.putString(Constant.KEY_CALL_SERVICE, actiontag);
                                     bundle2.putString("callid", String.valueOf(smallCallBean.getCall_id()));
                                     bundle2.putString("callee", callee);
-                                    if (task_id != null) {
-                                        bundle2.putString("taskid", task_id);
-                                    }
+                                    bundle2.putString("taskid", task_id);
                                     intent2.putExtras(bundle2);
                                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                                         startForegroundService(intent2);
                                     } else {
                                         startService(intent2);
                                     }
-                                    NetFailDoUtil.doWithCode(XLManagerService.this, 200,
-                                            "打电话接口回调成功", actiontag);
+                                } else {
+                                    ToastUtil.showMsg(XLManagerService.this, "服务器数据异常,请稍后重试");
                                 }
                             } else {
                                 NetFailDoUtil.doWithCode(XLManagerService.this, baseModel.getCode(),
-                                        baseModel.getMessage(), actiontag);
+                                        baseModel.getMessage());
                             }
                         }
                     }
@@ -296,28 +300,36 @@ public class XLManagerService extends Service implements LifecycleOwner {
                     @Override
                     public void onFailure(Object reasonObj) {
                         callMainDismissalert();
+
                         autoNext();
 
                         NetFailDoUtil.doWithFail(XLManagerService.this, "接口:addAction",
                                 Constant.ERROR_INTER + "callee=" + callee + "task_id=" + task_id + "ai_number_id="
                                         + ai_number_id + "is_open_recording="
-                                        + (DataUtil.checkIsOpenAudioRecord(XLManagerService.this) ? "1" : "0"),
-                                reasonObj, actiontag);
+                                        + DataUtil.getRecordStatus(XLManagerService.this),
+                                reasonObj);
                     }
                 });
     }
 
-    private CallNoteNew saveCallNoteToDb(Context context, String call_id, String callee, String calltype, String ai_number_id) {
-        CallNoteNew callNoteNew = new CallNoteNew();
-        callNoteNew.setCallid(call_id);
-        callNoteNew.setCallee(callee);
-        callNoteNew.setCaller(NewSharePUtil.getValueWithContext(context, Constant.KEY_MOBILE));
-        if (ai_number_id != null) {
-            callNoteNew.setAi_number_id(ai_number_id);
+    private CallNoteNew saveCallNoteToDb(String call_id, String callee, String calltype, String ai_number_id) {
+        if (call_id != null) {
+            CallNoteNew callNoteNew = new CallNoteNew();
+            callNoteNew.setCallid(call_id);
+            callNoteNew.setCallee(callee);
+            callNoteNew.setIsuplog(0);
+            callNoteNew.setIsuprecord(0);
+            callNoteNew.setCall_type_id(calltype);
+            callNoteNew.setCaller(NewSharePUtil.getValueWithContext(this, Constant.KEY_MOBILE));
+            if (ai_number_id != null) {
+                callNoteNew.setAi_number_id(ai_number_id);
+            }
+            SaveDataUtil.getInstance(this).saveToDb(this, call_id, JsonUtil.tojson(callNoteNew), Constant.SAVEKEY_TYPE_CALL);
+            return callNoteNew;
+        } else {
+            return null;
         }
-        SaveDataUtil.getInstance(context).saveToDb(context, call_id,
-                JsonUtil.tojson(callNoteNew), Constant.SAVEKEY_TYPE_CALL);
-        return callNoteNew;
+
     }
 
     private void autoNext() {
@@ -326,6 +338,12 @@ public class XLManagerService extends Service implements LifecycleOwner {
         sendBroadcast(s);
     }
 
+
+    public void xiaohao(int a_position, String x_number) {
+        int id = a_position - 1;
+        SimCardUtils.callAXB(this, id,
+                "tel:" + x_number);
+    }
 
     //a直呼
     public void aZhihu(String phoneNum, int a_postion) {
@@ -344,6 +362,7 @@ public class XLManagerService extends Service implements LifecycleOwner {
     int waitcancleid = -1;
     int callslotid = -1;
 
+
     //aa呼转
     public void callForwardingAA(String callee, int a_postion, String a_number) {
 
@@ -361,41 +380,35 @@ public class XLManagerService extends Service implements LifecycleOwner {
         dowithforward(waitcancleid, phoneNum);
     }
 
-
     private void dowithforward(int slotid, String callee) {
         callMainShowalert();
+        Constant.CANCEL_FORWARD_TAG = null;
         Map<String, String> map = new HashMap<>();
         map.put(Constant.KEY_WAIT_CALCEL, slotid + "");
         map.put(Constant.KEY_WAIT_CALCEL_XNUMBER, current_xNumber);
         NewSharePUtil.saveWithContext(this, map);
-
         SimCardUtils.callAXB(this, slotid, "tel:" + "**21*" + callee + "%23");
         callf();
     }
 
-
     private void callf() {
-        if (!NewSharePUtil.getValueWithContext(XLManagerService.this, Constant.KEY_WAIT_TIME).equals("6")) {
-            waitcall();
+        int waiting = Integer.parseInt(DataUtil.getWaitTime(this));
+        if (waiting != 6) {
+            new Handler(Looper.getMainLooper())
+                    .postDelayed(new Runnable() {
+                        @Override
+                        public void run() {
+                            callMainDismissalert();
+                            if (current_xNumber != null) {//表示正在打呼转电话
+                                SimCardUtils.call(XLManagerService.this, callslotid,
+                                        "tel:" + current_xNumber);
+                                current_xNumber = null;
+                            }
+                        }
+                    }, waiting * 1000);
         }
     }
 
-
-    private void waitcall() {
-        int waiting = Integer.parseInt(NewSharePUtil.getValueWithContext(XLManagerService.this,
-                Constant.KEY_WAIT_TIME));
-        new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                callMainDismissalert();
-                if (current_xNumber != null) {//表示正在打呼转电话
-                    SimCardUtils.call(XLManagerService.this, callslotid,
-                            "tel:" + current_xNumber);
-                    current_xNumber = null;
-                }
-            }
-        }, waiting * 1000);
-    }
 
     private static String callee;
     private static String taskid;
@@ -411,47 +424,49 @@ public class XLManagerService extends Service implements LifecycleOwner {
     private PhoneStateListener phoneStateListener = new PhoneStateListener() {
         @Override
         public void onCallStateChanged(int state, String phoneNumber) {
+
             switch (state) {
+
                 case TelephonyManager.CALL_STATE_IDLE:// 无任何状态
                     String callStatus = DataUtil.getCallStatus(XLManagerService.this);
+
+
                     if (!TextUtils.isEmpty(callStatus)) {
+
                         Intent intent = new Intent(XLManagerService.this,
                                 XLManagerService2.class);
                         Bundle bundle = new Bundle();
                         bundle.putString(Constant.KEY_CALL_SERVICE_DO, "uplog");
-                        NetFailDoUtil.doWithCode(XLManagerService.this, 203,
-                                "挂机，准备上传日志", actiontag);
 
                         String[] tem = callStatus.split("-");
                         if (tem.length == 6) {
                             smallCallBean = null;
-                            Constant.CANCEL_FORWARD_TAG = actiontag;
                             bundle.putString(Constant.KEY_CALL_SERVICE, actiontag);
                             bundle.putString("callid", tem[0]);
                             bundle.putString("taskid", tem[1]);
                             bundle.putString("callee", tem[2]);
                             bundle.putString("calltypeid", tem[3]);
-                            bundle.putString("nowxnumber",
-                                    NewSharePUtil.getValueWithContext(XLManagerService.this,
-                                            Constant.KEY_WAIT_CALCEL_XNUMBER));
-                            bundle.putString(Constant.KEY_WAIT_CALCEL,
-                                    NewSharePUtil.getValueWithContext(XLManagerService.this,
-                                            Constant.KEY_WAIT_CALCEL));
+                            bundle.putString("nowxnumber", NewSharePUtil.getValueWithContext(XLManagerService.this, Constant.KEY_WAIT_CALCEL_XNUMBER));
+                            bundle.putString(Constant.KEY_WAIT_CALCEL, NewSharePUtil.getValueWithContext(XLManagerService.this, Constant.KEY_WAIT_CALCEL));
+
+                            bundle.putString(Constant.KEY_CALL_EDNTIME_STR, DateUtil.getCurrentDate2());
                             intent.putExtras(bundle);
                             DataUtil.clearCallStatus(XLManagerService.this);
                             callCentrefresh();
+
                             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                                 startForegroundService(intent);
                             } else {
                                 startService(intent);
                             }
                         }
+
                     }
                     break;
                 case TelephonyManager.CALL_STATE_OFFHOOK:// 来电铃响时
-                    Constant.CANCEL_FORWARD_TAG = actiontag;
+
                     String s = "1";
-                    //  new ReadCallLogThread(telM).run();
+                    Constant.CANCEL_FORWARD_TAG = actiontag;
                     break;
                 case TelephonyManager.CALL_STATE_RINGING://相应操作
 

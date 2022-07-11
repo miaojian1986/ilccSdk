@@ -19,6 +19,7 @@ public class SmallCallBean extends BaseModel {
     private String da_type;
     private int sim;
     private int small;
+    private String call_type_id_jump_word;
 
 
 
@@ -35,6 +36,15 @@ public class SmallCallBean extends BaseModel {
     private String caller;
     private String callee;
 
+
+    public String getCall_type_id_jump_word() {
+        return call_type_id_jump_word;
+    }
+
+    public SmallCallBean setCall_type_id_jump_word(String call_type_id_jump_word) {
+        this.call_type_id_jump_word = call_type_id_jump_word;
+        return this;
+    }
 
     public String getCall_id() {
         return call_id;
